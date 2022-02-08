@@ -647,6 +647,7 @@ describe('hint tests related to the @moved directive', () => {
     const subgraph2 = gql`
     type T @key(fields: "id"){
       id: Int
+      f: Int
     }
     `;
     const result = mergeDocuments(subgraph1, subgraph2);

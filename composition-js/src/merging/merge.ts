@@ -883,7 +883,7 @@ class Merger {
         this.errors.push(ERRORS.MOVED_SOURCE_IS_ALSO_MOVED_ERROR.err({
           message: `Field '${coordinate}' on subgraph '${subgraphName}' has been previously marked with directive @moved in subgraph '${sourceSubgraphName}'`,
         }));
-      } else if (subgraphMap[sourceSubgraphName] === undefined) {
+      } else if (subgraphMap[sourceSubgraphName] !== undefined) {
         this.hints.push(new CompositionHint(
           hintMovedDirectiveCanBeRemoved,
           `Field '${coordinate}' on subgraph '${subgraphName}' has been successfully moved and directive can be removed`,
