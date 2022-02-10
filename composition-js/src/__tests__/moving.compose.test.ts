@@ -166,8 +166,8 @@ describe('composition involving @moving directive', () => {
     expect(result.errors?.length).toBe(2);
     expect(result.errors).toBeDefined();
     expect(errors(result)).toStrictEqual([
-      ['OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR', `Field 'T.a' on subgraph 'Subgraph1' has been previously marked with directive @override in subgraph 'Subgraph2'`],
-      ['OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR', `Field 'T.a' on subgraph 'Subgraph2' has been previously marked with directive @override in subgraph 'Subgraph1'`],
+      ['OVERRIDE_SOURCE_HAS_OVERRIDE', `Field 'T.a' on subgraph 'Subgraph1' has been previously marked with directive @override in subgraph 'Subgraph2'`],
+      ['OVERRIDE_SOURCE_HAS_OVERRIDE', `Field 'T.a' on subgraph 'Subgraph2' has been previously marked with directive @override in subgraph 'Subgraph1'`],
     ]);
   });
 });

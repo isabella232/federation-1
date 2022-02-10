@@ -881,7 +881,7 @@ class Merger {
           message: `Source and destination subgraphs '${sourceSubgraphName}' the same for overridden field '${coordinate}'`,
         }));
       } else if (subgraphsWithMoving.includes(sourceSubgraphName)) {
-        this.errors.push(ERRORS.OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR.err({
+        this.errors.push(ERRORS.OVERRIDE_SOURCE_HAS_OVERRIDE.err({
           message: `Field '${coordinate}' on subgraph '${subgraphName}' has been previously marked with directive @override in subgraph '${sourceSubgraphName}'`,
         }));
       } else if (subgraphMap[sourceSubgraphName] === undefined) {
