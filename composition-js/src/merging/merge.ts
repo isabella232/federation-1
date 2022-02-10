@@ -55,7 +55,7 @@ import {
   ErrorCodeDefinition,
   ERRORS,
   joinStrings,
-  movedDirectiveName,
+  overrideDirectiveName,
 } from "@apollo/federation-internals";
 import { ASTNode, GraphQLError, DirectiveLocation } from "graphql";
 import {
@@ -79,7 +79,8 @@ import {
   hintInconsistentArgumentPresence,
   hintInconsistentDescription,
   hintFromSubgraphDoesNotExist,
-  hintMovedDirectiveCanBeRemoved,
+  hintOverrideDirectiveCanBeRemoved,
+  hintOverriddenFieldCanBeRemoved,
 } from "../hints";
 
 const coreSpec = CORE_VERSIONS.latest();
@@ -829,15 +830,15 @@ class Merger {
   }
 
   /**
-   * Validates whether or not the use of the @moved directive is correct.
+   * Validates whether or not the use of the @override directive is correct.
    * return a list of subgraphs to ignore for the current field
    */
-  private validateMoved(sources: (FieldDefinition<any> | undefined)[], { coordinate }: FieldDefinition<any>): string[] {
+  private validateOverride(sources: (FieldDefinition<any> | undefined)[], { coordinate }: FieldDefinition<any>): string[] {
     // For any field, we can't have more than one @moving directive
     type MappedValue = {
       idx: number,
       name: string,
-      movedDirective: Directive<FieldDefinition<any>> | undefined,
+      overrideDirective: Directive<FieldDefinition<any>> | undefined,
     };
 
     type ReduceResultType = {
@@ -854,12 +855,12 @@ class Merger {
       return {
         idx,
         name: this.names[idx],
-        movedDirective: source.appliedDirectives.find(directive => directive.definition && directive.definition.name === movedDirectiveName),
+        overrideDirective: source.appliedDirectives.find(directive => directive.definition && directive.definition.name === overrideDirectiveName),
       };
     }).reduce((acc: ReduceResultType, elem) => {
       if (elem !== undefined) {
         acc.subgraphMap[elem.name] = elem;
-        if (elem.movedDirective !== undefined) {
+        if (elem.overrideDirective !== undefined) {
           acc.subgraphsWithMoving.push(elem.name);
         }
       }
@@ -867,8 +868,8 @@ class Merger {
     }, { subgraphsWithMoving: [], subgraphMap: {} });
 
     subgraphsWithMoving.forEach((subgraphName) => {
-      const { movedDirective } = subgraphMap[subgraphName];
-      const sourceSubgraphName = movedDirective?.arguments()?.from;
+      const { overrideDirective } = subgraphMap[subgraphName];
+      const sourceSubgraphName = overrideDirective?.arguments()?.from;
       if (!this.names.includes(sourceSubgraphName)) {
         this.hints.push(new CompositionHint(
           hintFromSubgraphDoesNotExist,
@@ -876,17 +877,23 @@ class Merger {
           coordinate,
         ));
       } else if (sourceSubgraphName === subgraphName) {
-        this.errors.push(ERRORS.MOVED_FROM_SELF_ERROR.err({
-          message: `Source and destination subgraphs '${sourceSubgraphName}' the same for moving field '${coordinate}'`,
+        this.errors.push(ERRORS.OVERRIDE_FROM_SELF_ERROR.err({
+          message: `Source and destination subgraphs '${sourceSubgraphName}' the same for overridden field '${coordinate}'`,
         }));
       } else if (subgraphsWithMoving.includes(sourceSubgraphName)) {
-        this.errors.push(ERRORS.MOVED_SOURCE_IS_ALSO_MOVED_ERROR.err({
-          message: `Field '${coordinate}' on subgraph '${subgraphName}' has been previously marked with directive @moved in subgraph '${sourceSubgraphName}'`,
+        this.errors.push(ERRORS.OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR.err({
+          message: `Field '${coordinate}' on subgraph '${subgraphName}' has been previously marked with directive @override in subgraph '${sourceSubgraphName}'`,
         }));
-      } else if (subgraphMap[sourceSubgraphName] !== undefined) {
+      } else if (subgraphMap[sourceSubgraphName] === undefined) {
         this.hints.push(new CompositionHint(
-          hintMovedDirectiveCanBeRemoved,
-          `Field '${coordinate}' on subgraph '${subgraphName}' has been successfully moved and directive can be removed`,
+          hintOverrideDirectiveCanBeRemoved,
+          `Field '${coordinate}' on subgraph '${subgraphName}' no longer exists in the from subgraph. The @override directive can be removed.`,
+          coordinate,
+        ));
+      } else {
+        this.hints.push(new CompositionHint(
+          hintOverriddenFieldCanBeRemoved,
+          `Field '${coordinate}' on subgraph '${sourceSubgraphName}' has been overridden. Consider removing it.`,
           coordinate,
         ));
       }
@@ -921,8 +928,8 @@ class Merger {
     if (this.hasExternal(sources)) {
       this.validateExternalFields(sources, dest, allTypesEqual);
     }
-    const movedFromSubgraph = this.validateMoved(sources, dest);
-    this.addJoinField(sources, dest, allTypesEqual, movedFromSubgraph);
+    const overrideFromSubgraph = this.validateOverride(sources, dest);
+    this.addJoinField(sources, dest, allTypesEqual, overrideFromSubgraph);
   }
 
   private validateExternalFields(sources: (FieldDefinition<any> | undefined)[], dest: FieldDefinition<any>, allTypesEqual: boolean) {

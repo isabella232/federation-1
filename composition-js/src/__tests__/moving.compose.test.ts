@@ -5,7 +5,7 @@ import './matchers';
 import { assertCompositionSuccess, schemas, errors } from './compose.test';
 
 describe('composition involving @moving directive', () => {
-  it('@moved but not yet removed', () => {
+  it('@override but not yet reoverride', () => {
     const subgraph1 = {
       name: 'Subgraph1',
       url: 'https://Subgraph1',
@@ -16,7 +16,7 @@ describe('composition involving @moving directive', () => {
 
         type T @key(fields: "k") {
           k: ID
-          a: Int @moved(from: "Subgraph2")
+          a: Int @override(from: "Subgraph2")
         }
       `
     }
@@ -101,7 +101,7 @@ describe('composition involving @moving directive', () => {
     `);
   });
 
-  it('moved from self error', () => {
+  it('override from self error', () => {
     const subgraph1 = {
       name: 'Subgraph1',
       url: 'https://Subgraph1',
@@ -112,7 +112,7 @@ describe('composition involving @moving directive', () => {
 
         type T @key(fields: "k") {
           k: ID
-          a: Int @moved(from: "Subgraph1")
+          a: Int @override(from: "Subgraph1")
         }
       `
     }
@@ -131,7 +131,7 @@ describe('composition involving @moving directive', () => {
     expect(result.errors?.length).toBe(1);
     expect(result.errors).toBeDefined();
     expect(errors(result)).toStrictEqual([
-      ['MOVED_FROM_SELF_ERROR', `Source and destination subgraphs 'Subgraph1' the same for moving field 'T.a'`],
+      ['OVERRIDE_FROM_SELF_ERROR', `Source and destination subgraphs 'Subgraph1' the same for overridden field 'T.a'`],
     ]);
   });
 
@@ -146,7 +146,7 @@ describe('composition involving @moving directive', () => {
 
         type T @key(fields: "k") {
           k: ID
-          a: Int @moved(from: "Subgraph2")
+          a: Int @override(from: "Subgraph2")
         }
       `
     }
@@ -157,7 +157,7 @@ describe('composition involving @moving directive', () => {
       typeDefs: gql`
         type T @key(fields: "k") {
           k: ID
-          a: Int @moved(from: "Subgraph1")
+          a: Int @override(from: "Subgraph1")
         }
       `
     }
@@ -166,8 +166,8 @@ describe('composition involving @moving directive', () => {
     expect(result.errors?.length).toBe(2);
     expect(result.errors).toBeDefined();
     expect(errors(result)).toStrictEqual([
-      ['MOVED_SOURCE_IS_ALSO_MOVED_ERROR', `Field 'T.a' on subgraph 'Subgraph1' has been previously marked with directive @moved in subgraph 'Subgraph2'`],
-      ['MOVED_SOURCE_IS_ALSO_MOVED_ERROR', `Field 'T.a' on subgraph 'Subgraph2' has been previously marked with directive @moved in subgraph 'Subgraph1'`],
+      ['OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR', `Field 'T.a' on subgraph 'Subgraph1' has been previously marked with directive @override in subgraph 'Subgraph2'`],
+      ['OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR', `Field 'T.a' on subgraph 'Subgraph2' has been previously marked with directive @override in subgraph 'Subgraph1'`],
     ]);
   });
 });

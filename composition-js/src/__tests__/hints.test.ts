@@ -21,7 +21,8 @@ import {
   hintInconsistentArgumentPresence,
   hintInconsistentDescription,
   hintFromSubgraphDoesNotExist,
-  hintMovedDirectiveCanBeRemoved,
+  hintOverrideDirectiveCanBeRemoved,
+  hintOverriddenFieldCanBeRemoved,
 } from '../hints';
 import { MergeResult, mergeSubgraphs } from '../merging';
 
@@ -607,7 +608,7 @@ test('hints on inconsistent description for field', () => {
   );
 });
 
-describe('hint tests related to the @moved directive', () => {
+describe('hint tests related to the @override directive', () => {
   it('hint when destination subgraph does not exist', () => {
     const subgraph1 = gql`
       type Query {
@@ -616,7 +617,7 @@ describe('hint tests related to the @moved directive', () => {
 
       type T @key(fields: "id"){
         id: Int
-        f: Int @moved(from: "Subgraph3")
+        f: Int @override(from: "Subgraph3")
       }
     `;
 
@@ -632,7 +633,7 @@ describe('hint tests related to the @moved directive', () => {
     );
   });
 
-  it('hint when moved field can be removed', () => {
+  it('hint when @override directive can be removed', () => {
     const subgraph1 = gql`
       type Query {
         a: Int
@@ -640,7 +641,31 @@ describe('hint tests related to the @moved directive', () => {
 
       type T @key(fields: "id"){
         id: Int
-        f: Int @moved(from: "Subgraph2")
+        f: Int @override(from: "Subgraph2")
+      }
+    `;
+
+    const subgraph2 = gql`
+    type T @key(fields: "id"){
+      id: Int
+    }
+    `;
+    const result = mergeDocuments(subgraph1, subgraph2);
+    expect(result).toRaiseHint(
+      hintOverrideDirectiveCanBeRemoved,
+      `Field 'T.f' on subgraph 'Subgraph1' no longer exists in the from subgraph. The @override directive can be removed.`,
+    );
+  });
+
+  it('hint overridden field can be removed', () => {
+    const subgraph1 = gql`
+      type Query {
+        a: Int
+      }
+
+      type T @key(fields: "id"){
+        id: Int
+        f: Int @override(from: "Subgraph2")
       }
     `;
 
@@ -652,8 +677,8 @@ describe('hint tests related to the @moved directive', () => {
     `;
     const result = mergeDocuments(subgraph1, subgraph2);
     expect(result).toRaiseHint(
-      hintMovedDirectiveCanBeRemoved,
-      `Field 'T.f' on subgraph 'Subgraph1' has been successfully moved and directive can be removed`,
+      hintOverriddenFieldCanBeRemoved,
+      `Field 'T.f' on subgraph 'Subgraph2' has been overridden. Consider removing it.`,
     );
   });
 });

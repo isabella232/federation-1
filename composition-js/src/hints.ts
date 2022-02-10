@@ -126,14 +126,20 @@ export const hintInconsistentArgumentPresence = new HintID(
 
 export const hintFromSubgraphDoesNotExist = new HintID(
   'FromSubgraphDoesNotExist',
-  'Source subgraph specified by @moved directive does not exist',
+  'Source subgraph specified by @override directive does not exist',
   'the argument with non-existent subgraph'
 );
 
-export const hintMovedDirectiveCanBeRemoved = new HintID(
-  'MovedDirectiveCanBeRemoved',
-  'Field with @moved directive no longer exists in source subgraph, the directive can be safely removed',
-  'the moved field'
+export const hintOverriddenFieldCanBeRemoved = new HintID(
+  'OverriddenFieldCanBeRemoved',
+  'Field has been overridden by another subgraph. Consider removing.',
+  'the overridden field'
+);
+
+export const hintOverrideDirectiveCanBeRemoved = new HintID(
+  'OverrideDirectiveCanBeRemoved',
+  'Field with @override directive no longer exists in source subgraph, the directive can be safely removed',
+  'the field with the override directive'
 );
 
 export class CompositionHint {

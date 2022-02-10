@@ -274,14 +274,14 @@ const SATISFIABILITY_ERROR = makeCodeDefinition(
   'Subgraphs can be merged, but the resulting supergraph API would have queries that cannot be satisfied by those subgraphs.',
 );
 
-const MOVED_FROM_SELF_ERROR = makeCodeDefinition(
-  'MOVED_FROM_SELF_ERROR',
-  'From location of field with `@moved` directive is its own subgraph.',
+const OVERRIDE_FROM_SELF_ERROR = makeCodeDefinition(
+  'OVERRIDE_FROM_SELF_ERROR',
+  'From location of field with `@override` directive is its own subgraph.',
 );
 
-const MOVED_SOURCE_IS_ALSO_MOVED_ERROR = makeCodeDefinition(
-  'MOVED_SOURCE_IS_ALSO_MOVED_ERROR',
-  'Field which is moved to another subgraph is also marked moved.',
+const OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR = makeCodeDefinition(
+  'OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR',
+  'Field which is overridden to another subgraph is also marked @override.',
 );
 
 export const ERROR_CATEGORIES = {
@@ -332,8 +332,8 @@ export const ERRORS = {
   EXTERNAL_MISSING_ON_BASE,
   INTERFACE_FIELD_IMPLEM_TYPE_MISMATCH,
   SATISFIABILITY_ERROR,
-  MOVED_FROM_SELF_ERROR,
-  MOVED_SOURCE_IS_ALSO_MOVED_ERROR,
+  OVERRIDE_FROM_SELF_ERROR,
+  OVERRIDE_SOURCE_HAS_OVERRIDE_ERROR,
 };
 
 const codeDefByCode = Object.values(ERRORS).reduce((obj: {[code: string]: ErrorCodeDefinition}, codeDef: ErrorCodeDefinition) => { obj[codeDef.code] = codeDef; return obj; }, {});
